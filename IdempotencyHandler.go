@@ -33,6 +33,10 @@ func NewIdempotencyHandler(tracer ...trace.Tracer) (IdempotencyHandler, error) {
 		return nil, tooManyArgumentsError("NewIdempotencyService")
 	}
 
+	if len(tracer) == 0 {
+		tracer = make([]trace.Tracer, 1)
+	}
+
 	repo, err := NewIdempotenceRepo(tracer[0])
 	if err != nil {
 		return nil, err

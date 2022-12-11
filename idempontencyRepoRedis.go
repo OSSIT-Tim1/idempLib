@@ -36,6 +36,10 @@ func NewIdempotenceRepo(tracer ...trace.Tracer) (IdempontencyRepo, error) {
 		return nil, tooManyArgumentsError("NewIdempotenceRepo")
 	}
 
+	if len(tracer) == 0 {
+		tracer = make([]trace.Tracer, 1)
+	}
+
 	host := os.Getenv("IDEMPOTENCE_REDIS_HOST")
 	port := os.Getenv("IDEMPOTENCE_REDIS_PORT")
 
