@@ -1,4 +1,4 @@
-module idempLib
+module github.com/OSSIT-Tim1/idempLib
 
 go 1.19
 
