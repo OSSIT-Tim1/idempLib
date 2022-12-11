@@ -52,16 +52,26 @@ func NewIdempotencyHandler(tracer ...trace.Tracer) (IdempotencyHandler, error) {
 MiddlewareIdempotency is middleware function which intercepts all incoming requests. Function check if request can collapse consistency of our system(PUT,POST,DELETE,PUT)
 and checks header for Idempotency-key variable to see if that request was handled before and stored in db. If not it will store it in redis with TLL = 3min
 */
-func (service *IdempotencyHandlerImpl) MiddlewareIdempotency(next http.Handler) http.Handler {
+func (handler *IdempotencyHandlerImpl) MiddlewareIdempotency(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
 		if h.Method == http.MethodPost || h.Method == http.MethodPut || h.Method == http.MethodPatch || h.Method == http.MethodDelete {
-			ctx, span := service.Tracer.Start(h.Context(), "IdempotencyHandler.MiddlewareIdempotency")
-			defer span.End()
-			if h.Header.Get(IDEMP_HEDER) != "" && service.repo.Exists(h.Header.Get(IDEMP_HEDER), ctx) {
-				rw.WriteHeader(http.StatusOK)
-				return
+			if handler.Tracer != nil {
+				ctx, span := handler.Tracer.Start(h.Context(), "IdempotencyHandler.MiddlewareIdempotency")
+				defer span.End()
+
+				if h.Header.Get(IDEMP_HEDER) != "" && handler.repo.Exists(h.Header.Get(IDEMP_HEDER), ctx) {
+					rw.WriteHeader(http.StatusOK)
+					return
+				} else {
+					handler.repo.Save(h.Header.Get(IDEMP_HEDER), ctx)
+				}
 			} else {
-				service.repo.Save(h.Header.Get(IDEMP_HEDER), ctx)
+				if h.Header.Get(IDEMP_HEDER) != "" && handler.repo.Exists(h.Header.Get(IDEMP_HEDER), nil) {
+					rw.WriteHeader(http.StatusOK)
+					return
+				} else {
+					handler.repo.Save(h.Header.Get(IDEMP_HEDER), nil)
+				}
 			}
 		}
 		next.ServeHTTP(rw, h)

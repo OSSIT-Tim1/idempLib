@@ -62,8 +62,10 @@ func NewIdempotenceRepo(tracer ...trace.Tracer) (IdempontencyRepo, error) {
 Exists checks if provided id exists in db and returns bool as response
 */
 func (i IdempontencyRepoRedis) Exists(id string, ctx context.Context) bool {
-	_, span := i.Tracer.Start(ctx, "IdempontencyRepoRedis.Exists")
-	defer span.End()
+	if i.Tracer != nil {
+		_, span := i.Tracer.Start(ctx, "IdempontencyRepoRedis.Exists")
+		defer span.End()
+	}
 
 	return i.cli.Exists(constructKey(id)).Val() == 1
 }
@@ -72,15 +74,22 @@ func (i IdempontencyRepoRedis) Exists(id string, ctx context.Context) bool {
 Save stores provided id in db with TTL : 3min
 */
 func (i IdempontencyRepoRedis) Save(id string, ctx context.Context) (string, error) {
-	_, span := i.Tracer.Start(ctx, "IdempontencyRepoRedis.Save")
-	defer span.End()
-
 	key := constructKey(id)
 
-	err := i.cli.Set(key, true, time.Duration(3)*time.Minute).Err()
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		return "", err
+	if i.Tracer != nil {
+		_, span := i.Tracer.Start(ctx, "IdempontencyRepoRedis.Save")
+		defer span.End()
+
+		err := i.cli.Set(key, true, time.Duration(3)*time.Minute).Err()
+		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
+			return "", err
+		}
+	} else {
+		err := i.cli.Set(key, true, time.Duration(3)*time.Minute).Err()
+		if err != nil {
+			return "", err
+		}
 	}
 	return id, nil
 }
