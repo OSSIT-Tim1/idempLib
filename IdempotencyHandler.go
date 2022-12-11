@@ -25,7 +25,7 @@ type IdempotencyHandlerImpl struct {
 }
 
 /*
-NewIdempotencyService generates new instance of idempontency service and takes in tracer as optional parameter.
+NewIdempotencyHandler generates new instance of idempontency service and takes in tracer as optional parameter.
 Function also returns tooManyArgumentsErr if we pass in more than one tracer as a parameter.
 */
 func NewIdempotencyHandler(tracer ...trace.Tracer) (IdempotencyHandler, error) {
