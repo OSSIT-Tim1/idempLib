@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type IdempontencyRepoRedis struct {
+type idempontencyRepoRedis struct {
 	cli    *redis.Client
 	Tracer trace.Tracer
 }
@@ -52,7 +52,7 @@ func NewIdempotenceRepo(tracer ...trace.Tracer) (IdempontencyRepo, error) {
 		Addr: adr,
 	})
 
-	return IdempontencyRepoRedis{
+	return idempontencyRepoRedis{
 		cli:    client,
 		Tracer: tracer[0],
 	}, nil
@@ -61,7 +61,7 @@ func NewIdempotenceRepo(tracer ...trace.Tracer) (IdempontencyRepo, error) {
 /*
 Exists checks if provided id exists in db and returns bool as response
 */
-func (i IdempontencyRepoRedis) Exists(id string, ctx context.Context) bool {
+func (i idempontencyRepoRedis) Exists(id string, ctx context.Context) bool {
 	if i.Tracer != nil {
 		_, span := i.Tracer.Start(ctx, "IdempontencyRepoRedis.Exists")
 		defer span.End()
@@ -73,7 +73,7 @@ func (i IdempontencyRepoRedis) Exists(id string, ctx context.Context) bool {
 /*
 Save stores provided id in db with TTL : 3min
 */
-func (i IdempontencyRepoRedis) Save(id string, ctx context.Context) (string, error) {
+func (i idempontencyRepoRedis) Save(id string, ctx context.Context) (string, error) {
 	key := constructKey(id)
 
 	if i.Tracer != nil {

@@ -19,7 +19,7 @@ type IdempotencyHandler interface {
 	MiddlewareIdempotency(next http.Handler) http.Handler
 }
 
-type IdempotencyHandlerImpl struct {
+type idempotencyHandlerImpl struct {
 	repo   IdempontencyRepo
 	Tracer trace.Tracer
 }
@@ -42,7 +42,7 @@ func NewIdempotencyHandler(tracer ...trace.Tracer) (IdempotencyHandler, error) {
 		return nil, err
 	}
 
-	return &IdempotencyHandlerImpl{
+	return &idempotencyHandlerImpl{
 		repo:   repo,
 		Tracer: tracer[0],
 	}, nil
@@ -52,7 +52,7 @@ func NewIdempotencyHandler(tracer ...trace.Tracer) (IdempotencyHandler, error) {
 MiddlewareIdempotency is middleware function which intercepts all incoming requests. Function check if request can collapse consistency of our system(PUT,POST,DELETE,PUT)
 and checks header for Idempotency-key variable to see if that request was handled before and stored in db. If not it will store it in redis with TLL = 3min
 */
-func (handler *IdempotencyHandlerImpl) MiddlewareIdempotency(next http.Handler) http.Handler {
+func (handler *idempotencyHandlerImpl) MiddlewareIdempotency(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
 		if h.Method == http.MethodPost || h.Method == http.MethodPut || h.Method == http.MethodPatch || h.Method == http.MethodDelete {
 			if handler.Tracer != nil {
